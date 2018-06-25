@@ -29,8 +29,8 @@ cd ..
 
 ### Create the test Dockerfile build files here...
 ### These files can be found verbatim in this repository at:
-### Dockerfile.2.1-sdk
-### Dockerfile.aspnetcore
+[Dockerfile.2.1-sdk](https://github.com/temporafugiunt/AngularSPATemplateFailure/blob/master/Dockerfile.2.1-sdk)
+[Dockerfile.aspnetcore](https://github.com/temporafugiunt/AngularSPATemplateFailure/blob/master/Dockerfile.aspnetcore)
 
 ### build the docker image from the microsoft/dotnet:2.1-sdk image
 docker build -t failed-spa-build-sdk -f Dockerfile.2.1-sdk .
