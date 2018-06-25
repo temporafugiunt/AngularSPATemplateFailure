@@ -1,5 +1,6 @@
 ### Create project base folder
 mkdir failed-spa-build
+
 cd .\failed-spa-build\
 
 ### Get the latest SPA templates
@@ -13,10 +14,12 @@ dotnet new angular -f netcoreapp2.0 -o failed-spa-build
 
 ### Build it
 cd .\failed-spa-build\
+
 dotnet build
 
 ### Verify it can run in development mode
 setx ASPNETCORE_ENVIRONMENT "Development"
+
 dotnet run
 
 ### Verify it can publish
