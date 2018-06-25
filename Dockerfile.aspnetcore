@@ -1,0 +1,25 @@
+FROM microsoft/aspnetcore-build:2.0.8-2.1.200-nanoserver-sac2016
+WORKDIR /app
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# install typescript and angular cli as that is required for js build
+RUN npm install -g typescript
+RUN npm install -g @angular/cli@1.7.0
+
+# copy csproj and restore as distinct layers so we break cache as little as possible
+COPY ./failed-spa-build/*.csproj ./failed-spa-build-src/
+WORKDIR /app/failed-spa-build-src
+RUN dotnet restore
+
+# copy everything else and build app
+COPY ./failed-spa-build/. .
+#WORKDIR /app/failed-spa-build/ClientApp
+#RUN npm install
+#WORKDIR /app/failed-spa-build-src
+RUN dotnet build
+RUN dotnet publish -c Release -o /app/failed-spa-build-pub
+
+FROM microsoft/dotnet:2.1-aspnetcore-runtime AS runtime
+WORKDIR /app
+COPY --from=build /app/failed-spa-build-pub ./
+ENTRYPOINT ["dotnet", "failed-spa-build.dll"]
