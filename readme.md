@@ -66,4 +66,5 @@ EXEC : error : Cannot find module 'C:\app\failed-spa-build-src\ClientApp\node_mo
   npm ERR!     C:\Users\ContainerAdministrator\AppData\Roaming\npm-cache\_logs\2018-06-25T20_23_36_785Z-debug.log
 C:\app\failed-spa-build-src\failed-spa-build.csproj(43,5): error MSB3073: The command "npm run build -- --prod" exited with code 1.
 The command 'powershell -Command $ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; dotnet publish -c Release -o /app/failed-spa-build-pub' return
-ed a non-zero code: 1```
+ed a non-zero code: 1
+```
