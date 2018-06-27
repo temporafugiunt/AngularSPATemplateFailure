@@ -1,0 +1,49 @@
+# escape=`
+
+# Installer image
+FROM microsoft/windowsservercore:1709 AS installer-env
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Retrieve .NET Core SDK
+ENV DOTNET_SDK_VERSION 2.1.301
+ENV NODE_VERSION 8.11.3
+ENV NODE_FULL_NAME node-v8.11.3-win-x64
+
+RUN Invoke-WebRequest -OutFile dotnet.zip https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$Env:DOTNET_SDK_VERSION/dotnet-sdk-$Env:DOTNET_SDK_VERSION-win-x64.zip; `
+    $dotnet_sha512 = 'f2f6cc020f89dc4d4f8064cc914cffabde0ce422715138778a6bcbbb6803ca66d6fd967097a0209c47c89b85dd9e93db48486ac86999bd3a533e45b789fcea89'; `
+    if ((Get-FileHash dotnet.zip -Algorithm sha512).Hash -ne $dotnet_sha512) { `
+        Write-Host 'CHECKSUM VERIFICATION FAILED!'; `
+        exit 1; `
+    }; `
+    `
+    Expand-Archive dotnet.zip -DestinationPath dotnet; `
+    Remove-Item -Force dotnet.zip
+	
+RUN Invoke-WebRequest https://nodejs.org/dist/v${env:NODE_VERSION}/${env:NODE_FULL_NAME}.zip -OutFile node.zip; `
+    Expand-Archive node.zip -DestinationPath node; `
+	Move-Item -Path node/${NODE_FULL_NAME}/* nodejs; `
+	Remove-Item -Force node.zip 
+
+# SDK image
+FROM microsoft/nanoserver:1709
+
+COPY --from=installer-env ["dotnet", "C:\\Program Files\\dotnet"]
+COPY --from=installer-env ["nodejs", "C:\\Program Files\\nodejs"]
+
+# In order to set system PATH, ContainerAdministrator must be used
+USER ContainerAdministrator 
+RUN setx /M PATH "%PATH%;C:\Program Files\dotnet;C:\Program Files\nodejs"
+USER ContainerUser
+
+# Configure Kestrel web server to bind to port 80 when present
+ENV ASPNETCORE_URLS=http://+:80 `
+    # Enable detection of running in a container
+    DOTNET_RUNNING_IN_CONTAINER=true `
+    # Enable correct mode for dotnet watch (only mode supported in a container)
+    DOTNET_USE_POLLING_FILE_WATCHER=true `
+    # Skip extraction of XML docs - generally not useful within an image/container - helps perfomance
+    NUGET_XMLDOC_MODE=skip
+
+# Trigger first run experience by running arbitrary cmd to populate local package cache
+RUN dotnet help
