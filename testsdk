@@ -1,0 +1,47 @@
+############################################################################################################################################
+FROM microsoft/dotnet:2.1-sdk-nanoserver-sac2016 AS build
+#FROM microsoft/nanoserver:sac2016 as build
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+ENV NODE_VERSION 8.11.3
+ENV NODE_FULL_NAME node-v8.11.3-win-x64
+
+RUN Invoke-WebRequest https://nodejs.org/dist/v${env:NODE_VERSION}/${env:NODE_FULL_NAME}.zip -OutFile node.zip; \
+    Expand-Archive node.zip -DestinationPath node; \
+	Move-Item -Path node/${NODE_FULL_NAME}/* $Env:ProgramFiles/nodejs; \
+	Remove-Item -Force node.zip; \
+	Remove-Item -Force node;
+
+RUN setx /M PATH $($Env:PATH + ';' + $Env:ProgramFiles + '\dotnet'+ ';' + $Env:ProgramFiles + '\nodejs')
+
+# upgrade npm
+RUN Move-Item -Path $Env:ProgramFiles/nodejs/node_modules/npm $Env:ProgramFiles/nodejs/node_modules/npm2; \
+	Remove-Item -Force $Env:ProgramFiles/nodejs/npm; \
+	Remove-Item -Force $Env:ProgramFiles/nodejs/npm.cmd; \
+	Remove-Item -Force $Env:ProgramFiles/nodejs/npx; \
+	Remove-Item -Force $Env:ProgramFiles/nodejs/npx.cmd; \
+    node $Env:ProgramFiles/nodejs/node_modules/npm2/bin/npm-cli.js i -g npm@latest; \
+	Remove-Item -Force -Recurse $Env:ProgramFiles/nodejs/node_modules/npm2;
+
+RUN npm install -g typescript
+RUN npm install -g @angular/cli@1.7.0
+
+# copy csproj and restore as distinct layers so we break cache as little as possible
+WORKDIR /build
+COPY ./failed-spa-build/*.csproj .
+RUN dotnet restore
+
+# copy everything else and build app
+COPY ./failed-spa-build/. .
+
+#WORKDIR /build/ClientApp
+#RUN npm install
+
+WORKDIR /build
+RUN dotnet publish -c Release --no-restore -o /app
+RUN dotnet publish -c Release -o /app
+############################################################################################################################################
+FROM microsoft/dotnet:2.1-aspnetcore-runtime-nanoserver-sac2016 AS runtime
+WORKDIR /app
+COPY --from=build /app .
+CMD ["dotnet", "failed-spa-build.dll"]
