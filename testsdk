@@ -38,7 +38,7 @@ COPY ./failed-spa-build/. .
 #RUN npm install
 
 WORKDIR /build
-RUN dotnet publish -c Release --no-restore -o /app
+#RUN dotnet publish -c Release --no-restore -o /app
 RUN dotnet publish -c Release -o /app
 ############################################################################################################################################
 FROM microsoft/dotnet:2.1.1-aspnetcore-runtime-nanoserver-sac2016 AS runtime
