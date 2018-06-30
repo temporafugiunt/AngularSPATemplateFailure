@@ -38,6 +38,7 @@ COPY ./failed-spa-build/. .
 #RUN npm install
 
 WORKDIR /build
+RUN dotnet build -c Release 
 #RUN dotnet publish -c Release --no-restore -o /app
 RUN dotnet publish -c Release -o /app
 ############################################################################################################################################
