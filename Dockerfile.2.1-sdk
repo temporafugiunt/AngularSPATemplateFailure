@@ -5,6 +5,9 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 ENV NODE_VERSION 8.11.3
 ENV NODE_FULL_NAME node-v8.11.3-win-x64
 
+#ENV NODE_VERSION 10.5.0
+#ENV NODE_FULL_NAME node-v10.5.0-win-x64
+
 #install node and npm as MS no longer does this in any .NET Core nanoserver based images since 2.1
 RUN New-Item -ItemType directory -Path /build; \
     Invoke-WebRequest https://nodejs.org/dist/v${env:NODE_VERSION}/${env:NODE_FULL_NAME}.zip -OutFile /build/${env:NODE_FULL_NAME}.zip; \
@@ -25,10 +28,6 @@ RUN dotnet restore
 
 # copy everything else and build app
 COPY ./failed-spa-build/. .
-#WORKDIR /app/failed-spa-build/ClientApp
-#RUN npm install
-#WORKDIR /app/failed-spa-build-src
-RUN dotnet build
 RUN dotnet publish -c Release -o /app/failed-spa-build-pub
 
 FROM microsoft/dotnet:2.1-aspnetcore-runtime AS runtime
