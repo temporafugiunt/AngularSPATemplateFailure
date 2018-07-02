@@ -1,3 +1,6 @@
+### This project now no longer fails to build, it is just a POC test project now... Thanks Microsoft! : )
+
+
 ### Create project base folder
 mkdir failed-spa-build
 
